@@ -1,0 +1,49 @@
+{
+  "id": "7aee352a-75a7-420a-8253-d17ae9a5d14e",
+  "name": "GMM TransferOrder",
+  "publisher": "Triple P Application Co., Ltd.",
+  "version": "1.0.0.0",
+  "brief": "",
+  "description": "",
+  "privacyStatement": "",
+  "EULA": "",
+  "help": "",
+  "url": "http://www.triplep.co.th/",
+  "logo": "",
+  "dependencies": [
+    {
+      "id": "178095c4-e347-4167-9a3e-21a02215bf85",
+      "name": "Tax localization for Thailand (VAT & WHT)",
+      "publisher": "Triple P Application Co., Ltd.",
+      "version": "19.0.0.20"
+    },
+    {
+      "id": "bb553e59-ec5c-4293-a319-1bd27bb39119",
+      "name": "TPP Localization Pack2",
+      "publisher": "Triple P Application Co., Ltd.",
+      "version": "19.0.0.6"
+    },
+    {
+      "id": "c9dedd2b-c1b2-437d-9b10-14a1646b297b",
+      "name": "GMM Extension",
+      "publisher": "Triple P Application Co., Ltd.",
+      "version": "1.0.0.88"
+    }
+  ],
+  "screenshots": [],
+  "platform": "1.0.0.0",
+  "application": "19.0.0.0",
+  "idRanges": [
+    {
+      "from": 55000,
+      "to": 67000
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": false,
+    "includeSourceInSymbolFile": false
+  },
+  "target": "OnPrem",
+  "runtime": "8.0"
+}
