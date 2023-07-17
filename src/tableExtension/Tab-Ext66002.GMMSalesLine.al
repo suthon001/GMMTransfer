@@ -33,7 +33,7 @@ tableextension 66002 "GMM T Sales Line" extends "Sales Line"
             Caption = 'Trp. Plan Date';
             DataClassification = CustomerContent;
         }
-        field(55006; "GMM Status"; code[10])
+        field(55006; "GMM Status"; text[50])
         {
             Caption = 'Status';
             DataClassification = CustomerContent;

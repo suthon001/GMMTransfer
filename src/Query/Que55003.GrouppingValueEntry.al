@@ -16,7 +16,7 @@ query 55003 "Groupping Value Entry"
             column(RefItemLedgerDocNo; "Ref. Item Ledger Doc No.")
             {
             }
-            column(DocumentType; "Document Type")
+            column(ItemLedgerDocumentType; "Document Type")
             {
             }
             column(Sales_Amount__Actual_; "Sales Amount (Actual)")
