@@ -2,7 +2,7 @@
   "id": "7aee352a-75a7-420a-8253-d17ae9a5d14e",
   "name": "GMM TransferOrder",
   "publisher": "Triple P Application Co., Ltd.",
-  "version": "1.0.0.0",
+  "version": "1.0.0.5",
   "brief": "",
   "description": "",
   "privacyStatement": "",
@@ -27,7 +27,7 @@
       "id": "c9dedd2b-c1b2-437d-9b10-14a1646b297b",
       "name": "GMM Extension",
       "publisher": "Triple P Application Co., Ltd.",
-      "version": "1.0.0.88"
+      "version": "1.0.0.221"
     }
   ],
   "screenshots": [],
