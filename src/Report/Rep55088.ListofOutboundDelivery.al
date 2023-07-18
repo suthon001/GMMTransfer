@@ -1,4 +1,4 @@
-report 55088 "List of Outbound Delivery"
+report 55090 "List of Outbound Delivery"
 {
     Caption = 'List of Outbound Delivery (ZSDR053)';
     ApplicationArea = all;
