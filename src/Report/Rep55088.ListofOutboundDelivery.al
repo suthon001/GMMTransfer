@@ -99,26 +99,12 @@ report 55088 "List of Outbound Delivery"
                     repeat
                         ltSkipt := false;
 
-                        IF (GM = GM::"Complete Post Shipment/Receive") OR (Status = Status::POST) THEN
-                            if Status in [Status::" ", Status::"POST"] then begin
-                                if TempSalesHeader."Document Type" = TempSalesHeader."Document Type"::Order then begin
-                                    if (not TempSalesHeader."GMM Completely Shipment") then
-                                        ltSkipt := true
-                                    else
-                                        if (TempSalesHeader."GMM Qty. Not Invoiced" <> TempSalesHeader."GMM Total Qty.") then
-                                            ltSkipt := true;
-                                end else
-                                    if (not TempSalesHeader."GMM Completely Shipment") then
-                                        ltSkipt := true
-                                    else
-                                        if (TempSalesHeader."GMM Qty. Rcd. Not Invoiced" <> TempSalesHeader."GMM Total Qty.") then
-                                            ltSkipt := true;
-                            end else
-                                ltSkipt := true;
 
-                        IF (GM = GM::"Post Shipment/Receive") OR (Status = Status::"Invoice Partial") THEN
-                            if Status in [Status::" ", Status::"Invoice Partial"] then begin
-                                if TempSalesHeader."Document Type" = TempSalesHeader."Document Type"::Order then begin
+
+
+                        if TempSalesHeader."Document Type" = TempSalesHeader."Document Type"::Order then begin
+                            IF (GM = GM::"Post Shipment/Receive") OR (Status = Status::"Invoice Partial") THEN begin
+                                if Status in [Status::" ", Status::"Invoice Partial"] then begin
                                     if (TempSalesHeader."GMM Completely Shipment") then
                                         ltSkipt := true
                                     else begin
@@ -126,14 +112,37 @@ report 55088 "List of Outbound Delivery"
                                         ltPostShip.SetRange("Order No.", TempSalesHeader."No.");
                                         if ltPostShip.IsEmpty then
                                             ltSkipt := true;
-
+                                    end;
+                                end else
+                                    ltSkipt := true;
+                            end else begin
+                                IF (GM = GM::"Complete Post Sale Invoice & Sale Credit Memo") OR (Status = Status::INVOICE) THEN begin
+                                    if Status in [Status::" ", Status::INVOICE] then begin
+                                        if (TempSalesHeader."GMM Completely Shipment") and (TempSalesHeader."GMM Qty. Not Invoiced" <> 0) then
+                                            ltSkipt := true;
+                                        if (not TempSalesHeader."GMM Completely Shipment") then
+                                            ltSkipt := true;
+                                    end else
+                                        ltSkipt := true;
+                                end;
+                                IF (GM = GM::"Complete Post Shipment/Receive") OR (Status = Status::POST) THEN begin
+                                    if Status in [Status::" ", Status::"POST"] then begin
+                                        if (not TempSalesHeader."GMM Completely Shipment") then
+                                            ltSkipt := true
+                                        else
+                                            if (TempSalesHeader."GMM Qty. Not Invoiced" <> TempSalesHeader."GMM Total Qty.") then
+                                                ltSkipt := true;
                                     end;
                                 end;
-                            end else
+                            end;
+                            if Status in [Status::"C/N", Status::"C/N Partial"] then
                                 ltSkipt := true;
-                        IF (GM = GM::"Post Shipment/Receive") OR (Status = Status::"C/N Partial") THEN
-                            if Status in [Status::" ", Status::"C/N Partial"] then begin
-                                if TempSalesHeader."Document Type" = TempSalesHeader."Document Type"::"Return Order" then begin
+                        end;
+
+
+                        if TempSalesHeader."Document Type" = TempSalesHeader."Document Type"::"Return Order" then begin
+                            IF (GM = GM::"Post Shipment/Receive") OR (Status = Status::"C/N Partial") THEN begin
+                                if Status in [Status::" ", Status::"C/N Partial"] then begin
                                     if (TempSalesHeader."GMM Completely Shipment") then
                                         ltSkipt := true
                                     else begin
@@ -142,32 +151,32 @@ report 55088 "List of Outbound Delivery"
                                         if ltReturn.IsEmpty then
                                             ltSkipt := true;
                                     end;
+                                end else
+                                    ltSkipt := true;
+                            end else begin
+                                IF (GM = GM::"Complete Post Sale Invoice & Sale Credit Memo") or (Status = Status::"C/N") THEN begin
+                                    if Status in [Status::" ", Status::"C/N"] then begin
+                                        if (TempSalesHeader."GMM Completely Shipment") and (TempSalesHeader."GMM Qty. Rcd. Not Invoiced" <> 0) then
+                                            ltSkipt := true;
+                                        if (not TempSalesHeader."GMM Completely Shipment") then
+                                            ltSkipt := true;
+                                    end else
+                                        ltSkipt := true;
                                 end;
-                            end else
-                                ltSkipt := true;
-
-                        IF (GM = GM::"Complete Post Sale Invoice & Sale Credit Memo") OR (Status = Status::INVOICE) THEN
-                            if Status in [Status::" ", Status::INVOICE] then begin
-                                if TempSalesHeader."Document Type" = TempSalesHeader."Document Type"::Order then begin
-                                    if (TempSalesHeader."GMM Completely Shipment") and (TempSalesHeader."GMM Qty. Not Invoiced" <> 0) then
-                                        ltSkipt := true;
-                                    if (not TempSalesHeader."GMM Completely Shipment") then
-                                        ltSkipt := true;
-
+                                IF (GM = GM::"Complete Post Shipment/Receive") OR (Status = Status::POST) THEN begin
+                                    if Status in [Status::" ", Status::"POST"] then begin
+                                        if (not TempSalesHeader."GMM Completely Shipment") then
+                                            ltSkipt := true
+                                        else
+                                            if (TempSalesHeader."GMM Qty. Rcd. Not Invoiced" <> TempSalesHeader."GMM Total Qty.") then
+                                                ltSkipt := true;
+                                    end;
                                 end;
-                            end else
+                            end;
+                            if Status in [Status::INVOICE, Status::"Invoice Partial"] then
                                 ltSkipt := true;
-                        IF (GM = GM::"Complete Post Sale Invoice & Sale Credit Memo") OR (Status = Status::"C/N") THEN
-                            if Status in [Status::" ", Status::"C/N"] then begin
-                                if TempSalesHeader."Document Type" = TempSalesHeader."Document Type"::"Return Order" then begin
-                                    if (TempSalesHeader."GMM Completely Shipment") and (TempSalesHeader."GMM Qty. Rcd. Not Invoiced" <> 0) then
-                                        ltSkipt := true;
-                                    if (not TempSalesHeader."GMM Completely Shipment") then
-                                        ltSkipt := true;
+                        end;
 
-                                end
-                            end else
-                                ltSkipt := true;
 
 
 
