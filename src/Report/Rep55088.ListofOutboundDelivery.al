@@ -58,13 +58,14 @@ report 55090 "List of Outbound Delivery"
                     ltSalesHeader.SetFilter("Bill-to Customer No.", BilltoCode);
                 if ltSalesHeader.FindFirst() then
                     repeat
-                        ltSalesHeader.CalcFields("Completely Shipped", "Qty. Not Invoiced", "Qty. Rcd. Not Invoiced");
+                        ltSalesHeader.CalcFields("Completely Shipped", "Qty. Not Invoiced", "Qty. Rcd. Not Invoiced", "Total Qty.");
                         TempSalesHeader.init();
                         TempSalesHeader.TransferFields(ltSalesHeader, false);
                         TempSalesHeader."Document Type" := ltSalesHeader."Document Type";
                         TempSalesHeader."GMM Completely Shipment" := ltSalesHeader."Completely Shipped";
                         TempSalesHeader."GMM Qty. Not Invoiced" := ltSalesHeader."Qty. Not Invoiced";
                         TempSalesHeader."GMM Qty. Rcd. Not Invoiced" := ltSalesHeader."Qty. Rcd. Not Invoiced";
+                        TempSalesHeader."GMM Total Qty." := ltSalesHeader."Total Qty.";
                         TempSalesHeader."No." := ltSalesHeader."No.";
                         TempSalesHeader.Insert();
                     until ltSalesHeader.Next() = 0;
@@ -89,6 +90,7 @@ report 55090 "List of Outbound Delivery"
                         TempSalesHeader."GMM Completely Shipment" := true;
                         TempSalesHeader."GMM Qty. Not Invoiced" := 0;
                         TempSalesHeader."GMM From Ship" := true;
+                        TempSalesHeader."GMM Total Qty." := 1;
                         if TempSalesHeader.Insert() then;
                     until ltSalesShipmentHeader.Next() = 0;
 
@@ -283,12 +285,7 @@ report 55090 "List of Outbound Delivery"
                 LineNo := LineNo + 1;
                 SalesInvoiceHeader.GET(ValueGroupping.DocumentNo);
                 HaveInvoice := true;
-                SalesInvoiceLine.reset();
-                SalesInvoiceLine.SetRange("DOcument No.", ValueGroupping.DocumentNo);
-                SalesInvoiceLine.CalcSums(Quantity, Amount, "Unit Cost");
-                ltTotalQty := SalesInvoiceLine.Quantity;
-                TotalAmt := SalesInvoiceLine.Amount;
-                UnitCost := SalesInvoiceLine."Unit Cost";
+
                 TempSalesLine.init();
                 TempSalesLine."Document Type" := pTempSalesHeader."Document Type";
                 TempSalesLine."Document No." := pTempSalesHeader."No.";
@@ -305,20 +302,25 @@ report 55090 "List of Outbound Delivery"
                     TempSalesLine."GMM Ship to Code" := PostedSalesShipment."Sell-to Customer No.";
                 TempSalesLine."GMM Ship to Name" := PostedSalesShipment."Ship-to Name";
                 TempSalesLine."GMM Trp. Plan Date" := PostedSalesShipment."Shipment Date";
+
                 if (pTempSalesHeader."GMM Completely Shipment") and (pTempSalesHeader."GMM Qty. Not Invoiced" = 0) then
-                    TempSalesLine."GMM GM" := 'C'
-                else
+                    TempSalesLine."GMM GM" := 'C';
+                if (NOT pTempSalesHeader."GMM Completely Shipment") and (pTempSalesHeader."GMM Qty. Not Invoiced" <> pTempSalesHeader."GMM Total Qty.") then
                     TempSalesLine."GMM GM" := 'B';
+                if (pTempSalesHeader."GMM Completely Shipment") and (pTempSalesHeader."GMM Qty. Not Invoiced" = pTempSalesHeader."GMM Total Qty.") then
+                    TempSalesLine."GMM GM" := 'A';
                 TempSalesLine."GMM Sold-to-pt" := pTempSalesHeader."Bill-to Customer No.";
                 TempSalesLine."GMM Name Sold-to-pt" := pTempSalesHeader."Bill-to Name";
                 TempSalesLine."GMM Route" := PostedSalesShipment."Shipping Agent Code";
-                TempSalesLine.Quantity := ltTotalQty;
+                TempSalesLine.Quantity := -ValueGroupping.Invoiced_Quantity;
                 TempSalesLine.Amount := ValueGroupping.Sales_Amount__Actual_ + ValueGroupping.Sales_Amount__Expected_;
-                TempSalesLine."Unit Cost" := ValueGroupping.Cost_Amount__Actual_ + ValueGroupping.Cost_Amount__Expected_;
+                TempSalesLine."Unit Cost" := -ValueGroupping.Cost_Amount__Actual_ + ValueGroupping.Cost_Amount__Expected_;
                 if TempSalesLine."GMM GM" = 'C' then
-                    TempSalesLine."GMM Status" := 'INVOICE'
-                else
+                    TempSalesLine."GMM Status" := 'INVOICE';
+                if TempSalesLine."GMM GM" = 'B' then
                     TempSalesLine."GMM Status" := 'Invoice Partial';
+                if TempSalesLine."GMM GM" = 'A' then
+                    TempSalesLine."GMM Status" := 'POST';
                 TempSalesLine."GMM Address" := PostedSalesShipment."Ship-to Address" + ' ' + PostedSalesShipment."Ship-to Address 2" + ' ' + PostedSalesShipment."Ship-to City" + ' ' + PostedSalesShipment."Ship-to Post Code";
                 TempSalesLine."GMM Phone No." := PostedSalesShipment."TPP Ship-to Phone No.";
                 TempSalesLine.Insert();
@@ -346,20 +348,34 @@ report 55090 "List of Outbound Delivery"
                     TempSalesLine."GMM Ship to Code" := PostedSalesShipment."Sell-to Customer No.";
                 TempSalesLine."GMM Ship to Name" := PostedSalesShipment."Ship-to Name";
                 TempSalesLine."GMM Trp. Plan Date" := PostedSalesShipment."Shipment Date";
-                if (pTempSalesHeader."GMM Completely Shipment") then
-                    TempSalesLine."GMM GM" := 'A'
-                else
+                if (pTempSalesHeader."GMM Completely Shipment") and (pTempSalesHeader."GMM Qty. Not Invoiced" = 0) then
+                    TempSalesLine."GMM GM" := 'C';
+                if (NOT pTempSalesHeader."GMM Completely Shipment") and (pTempSalesHeader."GMM Qty. Not Invoiced" <> pTempSalesHeader."GMM Total Qty.") then
                     TempSalesLine."GMM GM" := 'B';
+                if (pTempSalesHeader."GMM Completely Shipment") and (pTempSalesHeader."GMM Qty. Not Invoiced" = pTempSalesHeader."GMM Total Qty.") then
+                    TempSalesLine."GMM GM" := 'A';
+
                 TempSalesLine."GMM Sold-to-pt" := pTempSalesHeader."Bill-to Customer No.";
                 TempSalesLine."GMM Name Sold-to-pt" := pTempSalesHeader."Bill-to Name";
                 TempSalesLine."GMM Route" := PostedSalesShipment."Shipping Agent Code";
                 TempSalesLine.Quantity := ltTotalQty;
                 TempSalesLine.Amount := TotalAmt;
                 TempSalesLine."Unit Cost" := UnitCost;
+                if TempSalesLine."GMM GM" = 'C' then
+                    TempSalesLine."GMM Status" := 'INVOICE';
+                if TempSalesLine."GMM GM" = 'B' then
+                    TempSalesLine."GMM Status" := 'Invoice Partial';
                 if TempSalesLine."GMM GM" = 'A' then
-                    TempSalesLine."GMM Status" := 'POST'
-                else
-                    TempSalesLine."GMM Status" := 'Partial';
+                    TempSalesLine."GMM Status" := 'POST';
+                if TempSalesLine."GMM GM" in ['C', 'B'] then begin
+                    ItemLedgerEntry.reset();
+                    ItemLedgerEntry.SetRange("GMM Sales Order No.", pTempSalesHeader."No.");
+                    ItemLedgerEntry.SetFilter("GMM Invoice No.", '<>%1', '');
+                    if ItemLedgerEntry.FindFirst() then begin
+                        ItemLedgerEntry.CalcFields("GMM Invoice No.");
+                        TempSalesLine."GMM Bill Doc No." := ItemLedgerEntry."GMM Invoice No.";
+                    end;
+                end;
                 TempSalesLine."GMM Address" := PostedSalesShipment."Ship-to Address" + ' ' + PostedSalesShipment."Ship-to Address 2" + ' ' + PostedSalesShipment."Ship-to City" + ' ' + PostedSalesShipment."Ship-to Post Code";
                 TempSalesLine."GMM Phone No." := PostedSalesShipment."TPP Ship-to Phone No.";
                 TempSalesLine.Insert();
@@ -394,7 +410,7 @@ report 55090 "List of Outbound Delivery"
             TempSalesLine."GMM Route" := pTempSalesHeader."Shipping Agent Code";
             TempSalesLine.Quantity := ltTotalQty;
             TempSalesLine.Amount := TotalAmt;
-            TempSalesLine."Unit Cost" := -UnitCost;
+            TempSalesLine."Unit Cost" := UnitCost;
             TempSalesLine."GMM Status" := '';
             TempSalesLine."GMM Address" := pTempSalesHeader."Ship-to Address" + ' ' + pTempSalesHeader."Ship-to Address 2" + ' ' + pTempSalesHeader."Ship-to City" + ' ' + pTempSalesHeader."Ship-to Post Code";
             TempSalesLine."GMM Phone No." := pTempSalesHeader."TPP Ship-to Phone No.";
@@ -428,18 +444,14 @@ report 55090 "List of Outbound Delivery"
                 SalesCN.GET(ValueGroupping.DocumentNo);
                 LineNo := LineNo + 1;
                 HaveInvoice := true;
-                ltSalesLine.reset();
-                ltSalesLine.SetRange("Document Type", pTempSalesHeader."Document Type");
-                ltSalesLine.SetRange("DOcument No.", pTempSalesHeader."No.");
-                ltSalesLine.CalcSums(Quantity, Amount, "Unit Cost");
-                ltTotalQty := ltSalesLine.Quantity;
+
                 TempSalesLine.init();
                 TempSalesLine."Document Type" := pTempSalesHeader."Document Type";
                 TempSalesLine."Document No." := pTempSalesHeader."No.";
                 TempSalesLine."GMM Order Date" := pTempSalesHeader."Order Date";
                 TempSalesLine."Line No." := LineNo;
                 TempSalesLine."Shipment No." := ShipReceiptNo;
-                TempSalesLine."Shipment Date" := 0D;
+                TempSalesLine."Shipment Date" := PostedReturnReceipt."Posting Date";
                 TempSalesLine."GMM Bill Doc No." := ValueGroupping.DocumentNo;
                 TempSalesLine."GMM Posted Bill Date" := SalesCN."Posting Date";
                 TempSalesLine."GMM External Doc No." := pTempSalesHeader."External Document No.";
@@ -449,20 +461,25 @@ report 55090 "List of Outbound Delivery"
                     TempSalesLine."GMM Ship to Code" := pTempSalesHeader."Sell-to Customer No.";
                 TempSalesLine."GMM Ship to Name" := pTempSalesHeader."Ship-to Name";
                 TempSalesLine."GMM Trp. Plan Date" := pTempSalesHeader."Shipment Date";
-                if (pTempSalesHeader."GMM Completely Shipment") and (pTempSalesHeader."GMM Qty. Not Invoiced" = 0) then
-                    TempSalesLine."GMM GM" := 'C'
-                else
+                if (pTempSalesHeader."GMM Completely Shipment") and (pTempSalesHeader."GMM Qty. Rcd. Not Invoiced" = 0) then
+                    TempSalesLine."GMM GM" := 'C';
+                if (NOT pTempSalesHeader."GMM Completely Shipment") and (pTempSalesHeader."GMM Qty. Rcd. Not Invoiced" <> pTempSalesHeader."GMM Total Qty.") then
                     TempSalesLine."GMM GM" := 'B';
+                if (pTempSalesHeader."GMM Completely Shipment") and (pTempSalesHeader."GMM Qty. Rcd. Not Invoiced" = pTempSalesHeader."GMM Total Qty.") then
+                    TempSalesLine."GMM GM" := 'A';
+
                 TempSalesLine."GMM Sold-to-pt" := pTempSalesHeader."Bill-to Customer No.";
                 TempSalesLine."GMM Name Sold-to-pt" := pTempSalesHeader."Bill-to Name";
                 TempSalesLine."GMM Route" := pTempSalesHeader."Shipping Agent Code";
-                TempSalesLine.Quantity := ltTotalQty;
-                TempSalesLine.Amount := ValueGroupping.Sales_Amount__Actual_ + ValueGroupping.Sales_Amount__Expected_;
-                TempSalesLine."Unit Cost" := ValueGroupping.Cost_Amount__Actual_ + ValueGroupping.Cost_Amount__Expected_;
+                TempSalesLine.Quantity := ValueGroupping.Invoiced_Quantity;
+                TempSalesLine.Amount := ValueGroupping.Sales_Amount__Actual_;
+                TempSalesLine."Unit Cost" := -ValueGroupping.Cost_Amount__Actual_;
                 if TempSalesLine."GMM GM" = 'C' then
-                    TempSalesLine."GMM Status" := 'INVOICE'
-                else
-                    TempSalesLine."GMM Status" := 'Invoice Partial';
+                    TempSalesLine."GMM Status" := 'CN';
+                if TempSalesLine."GMM GM" = 'B' then
+                    TempSalesLine."GMM Status" := 'CN Partial';
+                if TempSalesLine."GMM GM" = 'A' then
+                    TempSalesLine."GMM Status" := 'POST';
                 TempSalesLine."GMM Address" := pTempSalesHeader."Ship-to Address" + ' ' + pTempSalesHeader."Ship-to Address 2" + ' ' + pTempSalesHeader."Ship-to City" + ' ' + pTempSalesHeader."Ship-to Post Code";
                 TempSalesLine."GMM Phone No." := pTempSalesHeader."TPP Ship-to Phone No.";
                 TempSalesLine.Insert();
@@ -470,20 +487,22 @@ report 55090 "List of Outbound Delivery"
             end;
             if not HaveInvoice then begin
                 LineNo := LineNo + 1;
+
                 ValueENtry.reset();
                 ValueENtry.SetRange("Document No.", ShipReceiptNo);
-                ValueENtry.CalcSums("Sales Amount (Actual)", "Sales Amount (Expected)", "Cost Amount (Actual)", "Cost Amount (Expected)", "Valued Quantity");
-                ltTotalQty := ValueENtry."Valued Quantity";
+                ValueENtry.SetFilter("Invoiced Quantity", '>0');
+                ValueENtry.CalcSums("Sales Amount (Actual)", "Sales Amount (Expected)", "Cost Amount (Actual)", "Cost Amount (Expected)", "Invoiced Quantity");
+                ltTotalQty := ValueENtry."Invoiced Quantity";
                 TotalAmt := ValueENtry."Sales Amount (Actual)" + ValueENtry."Sales Amount (Expected)";
-                UnitCost := ValueENtry."Cost Amount (Actual)" + ValueENtry."Cost Amount (Expected)";
+                UnitCost := ValueENtry."Cost Amount (Actual)";
+
                 TempSalesLine.init();
                 TempSalesLine."Document Type" := pTempSalesHeader."Document Type";
                 TempSalesLine."Document No." := pTempSalesHeader."No.";
                 TempSalesLine."GMM Order Date" := pTempSalesHeader."Order Date";
                 TempSalesLine."Line No." := LineNo;
                 TempSalesLine."Shipment No." := ShipReceiptNo;
-                TempSalesLine."Shipment Date" := 0D;
-                TempSalesLine."GMM Bill Doc No." := '';
+                TempSalesLine."Shipment Date" := PostedReturnReceipt."Posting Date";
                 TempSalesLine."GMM External Doc No." := pTempSalesHeader."External Document No.";
                 if PostedReturnReceipt."Ship-to Code" <> '' then
                     TempSalesLine."GMM Ship to Code" := pTempSalesHeader."Ship-to Code"
@@ -492,20 +511,34 @@ report 55090 "List of Outbound Delivery"
                 TempSalesLine."GMM Ship to Name" := pTempSalesHeader."Ship-to Name";
                 TempSalesLine."GMM Trp. Plan Date" := pTempSalesHeader."Shipment Date";
                 if (pTempSalesHeader."GMM Completely Shipment") and (pTempSalesHeader."GMM Qty. Rcd. Not Invoiced" = 0) then
-                    TempSalesLine."GMM GM" := 'C'
-                else
+                    TempSalesLine."GMM GM" := 'C';
+                if (NOT pTempSalesHeader."GMM Completely Shipment") and (pTempSalesHeader."GMM Qty. Rcd. Not Invoiced" <> pTempSalesHeader."GMM Total Qty.") then
                     TempSalesLine."GMM GM" := 'B';
+                if (pTempSalesHeader."GMM Completely Shipment") and (pTempSalesHeader."GMM Qty. Rcd. Not Invoiced" = pTempSalesHeader."GMM Total Qty.") then
+                    TempSalesLine."GMM GM" := 'A';
+
 
                 TempSalesLine."GMM Sold-to-pt" := pTempSalesHeader."Bill-to Customer No.";
                 TempSalesLine."GMM Name Sold-to-pt" := pTempSalesHeader."Bill-to Name";
                 TempSalesLine."GMM Route" := pTempSalesHeader."Shipping Agent Code";
                 TempSalesLine.Quantity := ltTotalQty;
-                TempSalesLine.Amount := TotalAmt;
-                TempSalesLine."Unit Cost" := UnitCost;
+                TempSalesLine.Amount := -TotalAmt;
+                TempSalesLine."Unit Cost" := -UnitCost;
                 if TempSalesLine."GMM GM" = 'C' then
-                    TempSalesLine."GMM Status" := 'CN'
-                else
+                    TempSalesLine."GMM Status" := 'CN';
+                if TempSalesLine."GMM GM" = 'B' then
                     TempSalesLine."GMM Status" := 'CN Partial';
+                if TempSalesLine."GMM GM" = 'A' then
+                    TempSalesLine."GMM Status" := 'POST';
+                if TempSalesLine."GMM GM" in ['C', 'B'] then begin
+                    ItemLedgerEntry.reset();
+                    ItemLedgerEntry.SetRange("GMM Return Order No.", pTempSalesHeader."No.");
+                    ItemLedgerEntry.SetFilter("GMM CN No.", '<>%1', '');
+                    if ItemLedgerEntry.FindFirst() then begin
+                        ItemLedgerEntry.CalcFields("GMM CN No.");
+                        TempSalesLine."GMM Bill Doc No." := ItemLedgerEntry."GMM CN No.";
+                    end;
+                end;
                 TempSalesLine."GMM Address" := pTempSalesHeader."Ship-to Address" + ' ' + pTempSalesHeader."Ship-to Address 2" + ' ' + pTempSalesHeader."Ship-to City" + ' ' + pTempSalesHeader."Ship-to Post Code";
                 TempSalesLine."GMM Phone No." := pTempSalesHeader."TPP Ship-to Phone No.";
                 TempSalesLine.Insert();
@@ -540,7 +573,7 @@ report 55090 "List of Outbound Delivery"
             TempSalesLine."GMM Route" := pTempSalesHeader."Shipping Agent Code";
             TempSalesLine.Quantity := ltTotalQty;
             TempSalesLine.Amount := -TotalAmt;
-            TempSalesLine."Unit Cost" := UnitCost;
+            TempSalesLine."Unit Cost" := -UnitCost;
             TempSalesLine."GMM Status" := '';
             TempSalesLine."GMM Address" := pTempSalesHeader."Ship-to Address" + ' ' + pTempSalesHeader."Ship-to Address 2" + ' ' + pTempSalesHeader."Ship-to City" + ' ' + pTempSalesHeader."Ship-to Post Code";
             TempSalesLine."GMM Phone No." := pTempSalesHeader."TPP Ship-to Phone No.";

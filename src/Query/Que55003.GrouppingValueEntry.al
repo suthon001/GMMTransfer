@@ -19,6 +19,7 @@ query 55005 "Groupping Value Entry"
             column(ItemLedgerDocumentType; "Document Type")
             {
             }
+            column(Invoiced_Quantity; "Invoiced Quantity") { Method = Sum; }
             column(Sales_Amount__Actual_; "Sales Amount (Actual)")
             {
                 Method = Sum;
