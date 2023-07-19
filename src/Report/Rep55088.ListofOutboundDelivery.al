@@ -327,12 +327,16 @@ report 55090 "List of Outbound Delivery"
             end;
             if not HaveInvoice then begin
                 LineNo := LineNo + 1;
-                ValueENtry.reset();
-                ValueENtry.SetRange("Document No.", ShipReceiptNo);
-                ValueENtry.CalcSums("Sales Amount (Actual)", "Sales Amount (Expected)", "Cost Amount (Actual)", "Cost Amount (Expected)", "Valued Quantity");
-                ltTotalQty := ValueENtry."Valued Quantity";
-                TotalAmt := ValueENtry."Sales Amount (Actual)" + ValueENtry."Sales Amount (Expected)";
-                UnitCost := ValueENtry."Cost Amount (Actual)" + ValueENtry."Cost Amount (Expected)";
+                CLEAR(ItemLedgerGroup);
+                ItemLedgerGroup.SetRange(DocumentNo, ShipReceiptNo);
+                ItemLedgerGroup.SetRange(Correction, false);
+                ItemLedgerGroup.Open();
+                while ItemLedgerGroup.Read() Do begin
+                    ltTotalQty := ItemLedgerGroup.Quantity;
+                    TotalAmt := ItemLedgerGroup.SalesAmountActual + ItemLedgerGroup.SalesAmountExpected;
+                    UnitCost := ItemLedgerGroup.CostAmountActual + ItemLedgerGroup.CostAmountExpected;
+                end;
+                ItemLedgerGroup.Close();
                 TempSalesLine.init();
                 TempSalesLine."Document Type" := pTempSalesHeader."Document Type";
                 TempSalesLine."Document No." := pTempSalesHeader."No.";
@@ -428,6 +432,7 @@ report 55090 "List of Outbound Delivery"
         SalesCN: Record "Sales Cr.Memo Header";
         HaveInvoice: Boolean;
         ItemDocType: Enum "Item Ledger Document Type";
+
     begin
 
         pTempSalesHeader.CalcFields("Completely Shipped", "Qty. Rcd. Not Invoiced");
@@ -487,14 +492,16 @@ report 55090 "List of Outbound Delivery"
             end;
             if not HaveInvoice then begin
                 LineNo := LineNo + 1;
-
-                ValueENtry.reset();
-                ValueENtry.SetRange("Document No.", ShipReceiptNo);
-                ValueENtry.SetFilter("Invoiced Quantity", '>0');
-                ValueENtry.CalcSums("Sales Amount (Actual)", "Sales Amount (Expected)", "Cost Amount (Actual)", "Cost Amount (Expected)", "Invoiced Quantity");
-                ltTotalQty := ValueENtry."Invoiced Quantity";
-                TotalAmt := ValueENtry."Sales Amount (Actual)" + ValueENtry."Sales Amount (Expected)";
-                UnitCost := ValueENtry."Cost Amount (Actual)";
+                CLEAR(ItemLedgerGroup);
+                ItemLedgerGroup.SetRange(DocumentNo, ShipReceiptNo);
+                ItemLedgerGroup.SetRange(Correction, false);
+                ItemLedgerGroup.Open();
+                while ItemLedgerGroup.Read() Do begin
+                    ltTotalQty := ItemLedgerGroup.Quantity;
+                    TotalAmt := ItemLedgerGroup.SalesAmountActual + ItemLedgerGroup.SalesAmountExpected;
+                    UnitCost := ItemLedgerGroup.CostAmountActual + ItemLedgerGroup.CostAmountExpected;
+                end;
+                ItemLedgerGroup.Close();
 
                 TempSalesLine.init();
                 TempSalesLine."Document Type" := pTempSalesHeader."Document Type";
@@ -596,6 +603,7 @@ report 55090 "List of Outbound Delivery"
         ValueENtry: Record "Value Entry";
         LineNo: Integer;
         ValueGroupping: query "Groupping Value Entry";
+        ItemLedgerGroup: Query "Groupping Item Ledger";
         TotalRec: Integer;
 
 

@@ -12,7 +12,7 @@ tableextension 66004 "GMM T Sales Header" extends "Sales Header"
         {
             Caption = 'Qty. Not Invoiced';
             FieldClass = FlowField;
-            CalcFormula = sum("Sales Line"."Return Rcd. Not Invd." where("Document Type" = field("Document Type"), "Document No." = field("No.")));
+            CalcFormula = sum("Sales Line"."Return Qty. Rcd. Not Invd." where("Document Type" = field("Document Type"), "Document No." = field("No.")));
         }
         field(66002; "Total Qty."; Decimal)
         {
