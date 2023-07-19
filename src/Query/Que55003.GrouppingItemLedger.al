@@ -10,7 +10,7 @@ query 55003 "Groupping Item Ledger"
             column(DocumentNo; "Document No.")
             {
             }
-            column(Correction; Correction) { }
+
             column(CostAmountExpected; "Cost Amount (Expected)")
             {
                 Method = Sum;

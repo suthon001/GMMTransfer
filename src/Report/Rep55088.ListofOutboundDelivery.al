@@ -329,7 +329,6 @@ report 55090 "List of Outbound Delivery"
                 LineNo := LineNo + 1;
                 CLEAR(ItemLedgerGroup);
                 ItemLedgerGroup.SetRange(DocumentNo, ShipReceiptNo);
-                ItemLedgerGroup.SetRange(Correction, false);
                 ItemLedgerGroup.Open();
                 while ItemLedgerGroup.Read() Do begin
                     ltTotalQty := ItemLedgerGroup.Quantity;
@@ -365,21 +364,13 @@ report 55090 "List of Outbound Delivery"
                 TempSalesLine.Quantity := ltTotalQty;
                 TempSalesLine.Amount := TotalAmt;
                 TempSalesLine."Unit Cost" := UnitCost;
+                TempSalesLine."GMM Bill Doc No." := '';
                 if TempSalesLine."GMM GM" = 'C' then
                     TempSalesLine."GMM Status" := 'INVOICE';
                 if TempSalesLine."GMM GM" = 'B' then
                     TempSalesLine."GMM Status" := 'Invoice Partial';
                 if TempSalesLine."GMM GM" = 'A' then
                     TempSalesLine."GMM Status" := 'POST';
-                if TempSalesLine."GMM GM" in ['C', 'B'] then begin
-                    ItemLedgerEntry.reset();
-                    ItemLedgerEntry.SetRange("GMM Sales Order No.", pTempSalesHeader."No.");
-                    ItemLedgerEntry.SetFilter("GMM Invoice No.", '<>%1', '');
-                    if ItemLedgerEntry.FindFirst() then begin
-                        ItemLedgerEntry.CalcFields("GMM Invoice No.");
-                        TempSalesLine."GMM Bill Doc No." := ItemLedgerEntry."GMM Invoice No.";
-                    end;
-                end;
                 TempSalesLine."GMM Address" := PostedSalesShipment."Ship-to Address" + ' ' + PostedSalesShipment."Ship-to Address 2" + ' ' + PostedSalesShipment."Ship-to City" + ' ' + PostedSalesShipment."Ship-to Post Code";
                 TempSalesLine."GMM Phone No." := PostedSalesShipment."TPP Ship-to Phone No.";
                 TempSalesLine.Insert();
@@ -494,7 +485,6 @@ report 55090 "List of Outbound Delivery"
                 LineNo := LineNo + 1;
                 CLEAR(ItemLedgerGroup);
                 ItemLedgerGroup.SetRange(DocumentNo, ShipReceiptNo);
-                ItemLedgerGroup.SetRange(Correction, false);
                 ItemLedgerGroup.Open();
                 while ItemLedgerGroup.Read() Do begin
                     ltTotalQty := ItemLedgerGroup.Quantity;
@@ -524,7 +514,7 @@ report 55090 "List of Outbound Delivery"
                 if (pTempSalesHeader."GMM Completely Shipment") and (pTempSalesHeader."GMM Qty. Rcd. Not Invoiced" = pTempSalesHeader."GMM Total Qty.") then
                     TempSalesLine."GMM GM" := 'A';
 
-
+                TempSalesLine."GMM Bill Doc No." := '';
                 TempSalesLine."GMM Sold-to-pt" := pTempSalesHeader."Bill-to Customer No.";
                 TempSalesLine."GMM Name Sold-to-pt" := pTempSalesHeader."Bill-to Name";
                 TempSalesLine."GMM Route" := pTempSalesHeader."Shipping Agent Code";
@@ -537,15 +527,6 @@ report 55090 "List of Outbound Delivery"
                     TempSalesLine."GMM Status" := 'CN Partial';
                 if TempSalesLine."GMM GM" = 'A' then
                     TempSalesLine."GMM Status" := 'POST';
-                if TempSalesLine."GMM GM" in ['C', 'B'] then begin
-                    ItemLedgerEntry.reset();
-                    ItemLedgerEntry.SetRange("GMM Return Order No.", pTempSalesHeader."No.");
-                    ItemLedgerEntry.SetFilter("GMM CN No.", '<>%1', '');
-                    if ItemLedgerEntry.FindFirst() then begin
-                        ItemLedgerEntry.CalcFields("GMM CN No.");
-                        TempSalesLine."GMM Bill Doc No." := ItemLedgerEntry."GMM CN No.";
-                    end;
-                end;
                 TempSalesLine."GMM Address" := pTempSalesHeader."Ship-to Address" + ' ' + pTempSalesHeader."Ship-to Address 2" + ' ' + pTempSalesHeader."Ship-to City" + ' ' + pTempSalesHeader."Ship-to Post Code";
                 TempSalesLine."GMM Phone No." := pTempSalesHeader."TPP Ship-to Phone No.";
                 TempSalesLine.Insert();
